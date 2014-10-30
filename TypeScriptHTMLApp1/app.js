@@ -165,24 +165,137 @@ var FigureRotations = (function () {
 var PentominoFigures = (function () {
     function PentominoFigures() {
     }
-    PentominoFigures.f = {
+    PentominoFigures.getAll = function () {
+        return [
+            PentominoFigures.F, PentominoFigures.I, PentominoFigures.L,
+            PentominoFigures.N, PentominoFigures.P, PentominoFigures.T,
+            PentominoFigures.U, PentominoFigures.V, PentominoFigures.W,
+            PentominoFigures.X, PentominoFigures.Y, PentominoFigures.Z
+        ];
+    };
+
+    PentominoFigures.F = {
         geometry: [
             [false, true, true],
             [true, true, false],
             [false, true, false]
         ],
-        color: "#0f0",
+        color: "#ff6",
         name: "F"
     };
 
-    PentominoFigures.p = {
+    PentominoFigures.P = {
         geometry: [
             [true, true],
             [true, true],
             [true, false]
         ],
-        color: "#00f",
-        name: "F"
+        color: "#039",
+        name: "P"
+    };
+
+    PentominoFigures.I = {
+        geometry: [
+            [true],
+            [true],
+            [true],
+            [true],
+            [true]
+        ],
+        color: "#f0f",
+        name: "I"
+    };
+
+    PentominoFigures.L = {
+        geometry: [
+            [true, false],
+            [true, false],
+            [true, false],
+            [true, true]
+        ],
+        color: "#f93",
+        name: "L"
+    };
+
+    PentominoFigures.T = {
+        geometry: [
+            [true, true, true],
+            [false, true, false],
+            [false, true, false]
+        ],
+        color: "#ff6",
+        name: "T"
+    };
+
+    PentominoFigures.N = {
+        geometry: [
+            [false, true],
+            [true, true],
+            [true, false],
+            [true, false]
+        ],
+        color: "#3c3",
+        name: "N"
+    };
+
+    PentominoFigures.U = {
+        geometry: [
+            [true, false, true],
+            [true, true, true]
+        ],
+        color: "#0fF",
+        name: "U"
+    };
+
+    PentominoFigures.V = {
+        geometry: [
+            [true, false, false],
+            [true, false, false],
+            [true, true, true]
+        ],
+        color: "#c39",
+        name: "V"
+    };
+
+    PentominoFigures.W = {
+        geometry: [
+            [true, false, false],
+            [true, true, false],
+            [false, true, true]
+        ],
+        color: "#33f",
+        name: "W"
+    };
+
+    PentominoFigures.X = {
+        geometry: [
+            [false, true, false],
+            [true, true, true],
+            [false, true, false]
+        ],
+        color: "#f00",
+        name: "X"
+    };
+
+    PentominoFigures.Y = {
+        geometry: [
+            [false, true],
+            [true, true],
+            [false, true],
+            [false, true]
+        ],
+        color: "#0c9",
+        name: "Y"
+    };
+
+    PentominoFigures.Z = {
+        geometry: [
+            [true, true, false],
+            [false, true, false],
+            [false, true, true]
+        ],
+        color: "#9f3",
+        name: "Z"
     };
     return PentominoFigures;
 })();
@@ -195,77 +308,100 @@ var PentominoDrawer = (function () {
         this.paper = Raphael(paperContainer, height, height);
         this.drawBoard();
 
-        var pRotations = new FigureRotations(PentominoFigures.p);
-        this.drawFigure(pRotations.getDrawInfo());
+        var figures = PentominoFigures.getAll().map(function (f) {
+            return new FigureRotations(f);
+        });
+
+        var figuresSelect = document.getElementById("figure-select");
+        var figuresMap = {};
+
+        var currentFigure = new FigureRotations(PentominoFigures.F);
+
+        figures.forEach(function (f) {
+            var option = document.createElement("option");
+            option.value = f.figure.name;
+            option.text = f.figure.name;
+            figuresSelect.appendChild(option);
+            figuresMap[f.figure.name] = f;
+        });
+
+        $(figuresSelect).change(function (event) {
+            var valueSelected = figuresSelect.value;
+            currentFigure = figuresMap[valueSelected];
+            _this.clearBorad();
+            _this.drawFigure(currentFigure.getDrawInfo());
+        });
+
+        this.drawFigure(currentFigure.getDrawInfo());
 
         if (upButton) {
             $(upButton).click(function (event) {
-                pRotations.moveUp();
+                currentFigure.moveUp();
                 _this.clearBorad();
-                _this.drawFigure(pRotations.getDrawInfo());
+                _this.drawFigure(currentFigure.getDrawInfo());
             });
         }
 
         if (downButton) {
             $(downButton).click(function (event) {
-                pRotations.moveDown();
+                currentFigure.moveDown();
                 _this.clearBorad();
-                _this.drawFigure(pRotations.getDrawInfo());
+                _this.drawFigure(currentFigure.getDrawInfo());
             });
         }
 
         if (leftButton) {
             $(leftButton).click(function (event) {
-                pRotations.moveLeft();
+                currentFigure.moveLeft();
                 _this.clearBorad();
-                _this.drawFigure(pRotations.getDrawInfo());
+                _this.drawFigure(currentFigure.getDrawInfo());
             });
         }
 
         if (rightButton) {
             $(rightButton).click(function (event) {
-                pRotations.moveRight();
+                currentFigure.moveRight();
                 _this.clearBorad();
-                _this.drawFigure(pRotations.getDrawInfo());
+                _this.drawFigure(currentFigure.getDrawInfo());
             });
         }
 
         if (rotateButton) {
             $(rotateButton).click(function (event) {
                 _this.clearBorad();
-                pRotations.changeRotationStateCLockwise();
-                _this.drawFigure(pRotations.getDrawInfo());
+                currentFigure.changeRotationStateCLockwise();
+                _this.drawFigure(currentFigure.getDrawInfo());
             });
         }
         $(document).keydown(function (event) {
             switch (event.which) {
                 case 37:
-                    pRotations.moveLeft();
+                    currentFigure.moveLeft();
                     _this.clearBorad();
-                    _this.drawFigure(pRotations.getDrawInfo());
+                    _this.drawFigure(currentFigure.getDrawInfo());
                     break;
 
                 case 38:
-                    pRotations.moveUp();
+                    currentFigure.moveUp();
                     _this.clearBorad();
-                    _this.drawFigure(pRotations.getDrawInfo());
+                    _this.drawFigure(currentFigure.getDrawInfo());
                     break;
 
                 case 39:
-                    pRotations.moveRight();
+                    currentFigure.moveRight();
                     _this.clearBorad();
-                    _this.drawFigure(pRotations.getDrawInfo());
+                    _this.drawFigure(currentFigure.getDrawInfo());
                     break;
 
                 case 40:
-                    pRotations.moveDown();
+                    currentFigure.moveDown();
                     _this.clearBorad();
-                    _this.drawFigure(pRotations.getDrawInfo());
+                    _this.drawFigure(currentFigure.getDrawInfo());
                     break;
                 case 82:
                     _this.clearBorad();
-                    pRotations.changeRotationStateCLockwise();
-                    _this.drawFigure(pRotations.getDrawInfo());
+                    currentFigure.changeRotationStateCLockwise();
+                    _this.drawFigure(currentFigure.getDrawInfo());
                     break;
 
                 default:

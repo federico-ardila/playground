@@ -198,25 +198,141 @@ class FigureRotations {
 
 class PentominoFigures {
 
-    static f: IPentominoFigure = {
+    static getAll() : Array<IPentominoFigure> {
+        return [
+            PentominoFigures.F, PentominoFigures.I, PentominoFigures.L,
+            PentominoFigures.N, PentominoFigures.P, PentominoFigures.T,
+            PentominoFigures.U, PentominoFigures.V, PentominoFigures.W,
+            PentominoFigures.X, PentominoFigures.Y, PentominoFigures.Z
+        ];
+    }
+
+// ReSharper disable InconsistentNaming
+    static F: IPentominoFigure = {
         geometry: [
             [false, true, true],
             [true, true, false],
             [false, true, false]
         ],
-        color: "#0f0",
+        color: "#ff6",
         name: "F"
     }
 
-        static p: IPentominoFigure = {
+    static P: IPentominoFigure = {
         geometry: [
             [true, true],
             [true, true],
             [true, false]
         ],
-        color: "#00f",
-        name: "F"
+        color: "#039",
+        name: "P"
     }
+
+    static I: IPentominoFigure = {
+        geometry: [
+            [true],
+            [true],
+            [true],
+            [true],
+            [true]
+        ],
+        color: "#f0f",
+        name: "I"
+    }
+
+    static L: IPentominoFigure = {
+        geometry: [
+            [true, false],
+            [true, false],
+            [true, false],
+            [true, true]
+        ],
+        color: "#f93",
+        name: "L"
+    }
+
+    static T: IPentominoFigure = {
+        geometry: [
+            [true, true, true],
+            [false, true, false],
+            [false, true, false]
+        ],
+        color: "#ff6",
+        name: "T"
+    }
+
+    static N: IPentominoFigure = {
+        geometry: [
+            [false, true],
+            [true, true],
+            [true, false],
+            [true, false]
+        ],
+        color: "#3c3",
+        name: "N"
+    }
+
+    static U: IPentominoFigure = {
+        geometry: [
+            [true, false, true],
+            [true, true, true]
+        ],
+        color: "#0fF",
+        name: "U"
+    }
+
+    static V: IPentominoFigure = {
+        geometry: [
+            [true, false, false],
+            [true, false, false],
+            [true, true, true]
+        ],
+        color: "#c39",
+        name: "V"
+    }
+
+    static W: IPentominoFigure = {
+        geometry: [
+            [true, false, false],
+            [true, true, false],
+            [false, true, true]
+        ],
+        color: "#33f",
+        name: "W"
+    }
+
+    static X: IPentominoFigure = {
+        geometry: [
+            [false, true, false],
+            [true, true, true],
+            [false, true, false]
+        ],
+        color: "#f00",
+        name: "X"
+    }
+
+    static Y: IPentominoFigure = {
+        geometry: [
+            [false, true],
+            [true, true],
+            [false, true],
+            [false, true]
+        ],
+        color: "#0c9",
+        name: "Y"
+    }
+
+    static Z: IPentominoFigure = {
+        geometry: [
+            [true, true, false],
+            [false, true, false],
+            [false, true, true]
+        ],
+        color: "#9f3",
+        name: "Z"
+    }
+
+// ReSharper restore InconsistentNaming
 }
 
 
@@ -234,38 +350,61 @@ class PentominoDrawer {
         this.paper = Raphael(paperContainer, height, height);
         this.drawBoard();
 
-        var pRotations = new FigureRotations(PentominoFigures.p);
-        this.drawFigure(pRotations.getDrawInfo());
+        var figures = PentominoFigures.getAll().map(f => new FigureRotations(f));
+
+        var figuresSelect = <HTMLSelectElement>document.getElementById("figure-select");
+        var figuresMap: { [name: string]: FigureRotations } = {};
+
+        var currentFigure = new FigureRotations(PentominoFigures.F);
+
+        figures.forEach(f => {
+            var option = document.createElement("option");
+            option.value = f.figure.name;
+            option.text = f.figure.name;
+            figuresSelect.appendChild(option);
+            figuresMap[f.figure.name] = f;
+        });
+
+        $(figuresSelect).change(event => {
+            var valueSelected = figuresSelect.value;
+            currentFigure = figuresMap[valueSelected];
+            this.clearBorad();
+            this.drawFigure(currentFigure.getDrawInfo());
+        });
+
+
+        
+        this.drawFigure(currentFigure.getDrawInfo());
 
         if (upButton) {
             $(upButton).click(event => {
-                pRotations.moveUp();
+                currentFigure.moveUp();
                 this.clearBorad();
-                this.drawFigure(pRotations.getDrawInfo());
+                this.drawFigure(currentFigure.getDrawInfo());
             });
         }
 
         if (downButton) {
             $(downButton).click(event => {
-                pRotations.moveDown();
+                currentFigure.moveDown();
                 this.clearBorad();
-                this.drawFigure(pRotations.getDrawInfo());
+                this.drawFigure(currentFigure.getDrawInfo());
             });
         }
 
         if (leftButton) {
             $(leftButton).click(event => {
-                pRotations.moveLeft();
+                currentFigure.moveLeft();
                 this.clearBorad();
-                this.drawFigure(pRotations.getDrawInfo());
+                this.drawFigure(currentFigure.getDrawInfo());
             });
         }
 
         if (rightButton) {
             $(rightButton).click(event => {
-                pRotations.moveRight();
+                currentFigure.moveRight();
                 this.clearBorad();
-                this.drawFigure(pRotations.getDrawInfo());
+                this.drawFigure(currentFigure.getDrawInfo());
             });
         }
 
@@ -273,39 +412,39 @@ class PentominoDrawer {
         if (rotateButton) {
             $(rotateButton).click(event => {
                 this.clearBorad();
-                pRotations.changeRotationStateCLockwise();
-                this.drawFigure(pRotations.getDrawInfo());
+                currentFigure.changeRotationStateCLockwise();
+                this.drawFigure(currentFigure.getDrawInfo());
             });
         }
         $(document).keydown(event => {
             switch (event.which) {
             case 37: // left
-                pRotations.moveLeft();
+                currentFigure.moveLeft();
                 this.clearBorad();
-                this.drawFigure(pRotations.getDrawInfo());
+                this.drawFigure(currentFigure.getDrawInfo());
                 break;
 
             case 38: // up
-                pRotations.moveUp();
+                currentFigure.moveUp();
                 this.clearBorad();
-                this.drawFigure(pRotations.getDrawInfo());
+                this.drawFigure(currentFigure.getDrawInfo());
                 break;
 
             case 39: // right
-                pRotations.moveRight();
+                currentFigure.moveRight();
                 this.clearBorad();
-                this.drawFigure(pRotations.getDrawInfo());
+                this.drawFigure(currentFigure.getDrawInfo());
                 break;
 
             case 40: // down
-                pRotations.moveDown();
+                currentFigure.moveDown();
                 this.clearBorad();
-                this.drawFigure(pRotations.getDrawInfo());
+                this.drawFigure(currentFigure.getDrawInfo());
                 break;
             case 82: // r
                 this.clearBorad();
-                pRotations.changeRotationStateCLockwise();
-                this.drawFigure(pRotations.getDrawInfo());
+                currentFigure.changeRotationStateCLockwise();
+                this.drawFigure(currentFigure.getDrawInfo());
                 break;
 
             default:
