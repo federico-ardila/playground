@@ -91,11 +91,11 @@ class FigureRotations {
     changeRotationStateCLockwise() {
         do {
             this.currentRotation = (this.currentRotation + 1) % this.rotations.length;
-        } while(!this.isValidPosition(this.currentPosition))
+        } while(!FigureRotations.isValidPosition(this.currentPosition, this.rotations[this.currentRotation]))
     }
 
     setPosition(newPosition: ICoordinate) : boolean {
-        if (!this.isValidPosition(newPosition)) {
+        if (!FigureRotations.isValidPosition(newPosition, this.rotations[this.currentRotation])) {
             return false;
         }
         this.currentPosition = newPosition;
@@ -130,8 +130,8 @@ class FigureRotations {
         }); 
     }
 
-    private isValidPosition(position:ICoordinate): boolean {
-        var isValid = this.getTargetSquares(position, this.currentRotation).every(square => {
+    static isValidPosition(position:ICoordinate, rotation: IFigureGeometry): boolean {
+        var isValid = FigureRotations.getTargetSquares(position, rotation).every(square => {
             var inboundsVertical = square.top >= 0 && square.top < 8;
             var inboundsHorizontal = square.left >= 0 && square.left < 8;
             var outbounds = !((square.top == 3 && (square.left == 3 || square.left == 4))
@@ -170,9 +170,8 @@ class FigureRotations {
         return result;
     }
 
-    private getTargetSquares(position:ICoordinate, rotation:number): Array<ICoordinate> {
+    static getTargetSquares(position: ICoordinate, currentGeometry:IFigureGeometry): Array<ICoordinate> {
         var result = new Array<ICoordinate>();
-        var currentGeometry = this.rotations[rotation];
         for (var i = 0; i < currentGeometry.length; i++) {
             for (var j = 0; j < currentGeometry[i].length; j++) {
                 if (currentGeometry[i][j]) {
@@ -185,12 +184,38 @@ class FigureRotations {
         return result;
     }
 
+    getAllValidPosition(): Array<Array<string>> {
+        var result = new Array<Array<string>>();
+        var ranks = ["A", "B", "C", "D", "E", "F", "G", "H"];
+        this.rotations.forEach(rotation => {
+            for (var i = 0; i < 8; i++) {
+                for (var j = 0; j < 8; j++) {
+                    var position = { top: i, left: j };
+                    if (FigureRotations.isValidPosition(position, rotation)) {
+                        var row = new Array<string>();
+                        row.push(this.figure.name);
+                        var squares = FigureRotations.getTargetSquares(position, rotation);
+                        squares.forEach(p => {
+                            var field = 8 - p.top;
+                            var rank = ranks[p.left];
+                            var squareName = rank + field.toString();
+                            row.push(squareName);
+                        });
+                        result.push(row);
+                    }
+                }
+            }
+        });
+        return result;
+    }
+
+
     getDrawInfo(): IDrawInfo {
         return {
            //position: this.currentPosition
             //geometry : this.rotations[this.currentRotation],
             color: this.figure.color,
-            targetSquares: this.getTargetSquares(this.currentPosition, this.currentRotation),
+            targetSquares: FigureRotations.getTargetSquares(this.currentPosition, this.rotations[this.currentRotation]),
             
         };
     }
@@ -482,12 +507,12 @@ class PentominoDrawer {
     }
 
     private drawBoard() {
-        var leters = ["A", "B", "C", "D", "E", "F", "G", "H"];
+        var ranks = ["A", "B", "C", "D", "E", "F", "G", "H"];
         for (var i = 0; i < 8; i++) {
             //var lable = this.paper.rect(0, this.height + this.height * i, this.height, this.height).attr("text", leters[i]);
             var text = this.paper.text(this.height / 2, (3 * this.height / 2) + this.height * i, (8-i).toString());
             text.attr({ "font-size": 32, "font-family": "Arial, Helvetica, sans-serif" });
-            text = this.paper.text((3 * this.height / 2) + this.height * i, this.height / 2 , leters[i]);
+            text = this.paper.text((3 * this.height / 2) + this.height * i, this.height / 2 , ranks[i]);
             text.attr({ "font-size": 32, "font-family": "Arial, Helvetica, sans-serif" });
         }
 
@@ -505,7 +530,37 @@ class PentominoDrawer {
 
 window.onload = () => {
 
-    testSearch();
+    //testSearch();
+
+    //var pRot = new FigureRotations(PentominoFigures.P);
+    //pRot.getAllValidPosition().forEach(r => console.log(r.toString()));
+
+    var rows = PentominoFigures.getAll().map(f => new FigureRotations(f).getAllValidPosition()).reduce((previus,current)=>previus.concat(current));
+
+    //rows.forEach(row => console.log(row.toString()));
+    
+    var columns = PentominoFigures.getAll().map(f => f.name);
+
+    var ranks = ["A", "B", "C", "D", "E", "F", "G", "H"];
+    for (var i = 0; i < 8; i++) {
+        for (var j = 0; j < 8; j++) {
+            var field = 8 - i;
+            var rank = ranks[j];
+            var squareName = rank + field.toString();
+            if (squareName != "D5" && squareName != "E5" && squareName != "D4" && squareName != "E4") {
+                columns.push(squareName);
+            }
+            
+        }
+    }
+
+    var colRow = new Dlx.ColumnsRow(columns);
+    var instance = new Dlx.ProblemInstance(colRow);
+    instance.addRowsByNames(rows);
+    var dlxSearch = new Dlx.Search(instance);
+    dlxSearch.search();
+
+
 
     var container = document.getElementById("content");
     var upButton = document.getElementById("up-button");
@@ -514,7 +569,5 @@ window.onload = () => {
     var rightButton = document.getElementById("right-button");
     var rotateButton = document.getElementById("rotate-button");
     var pentominoDrawer = new PentominoDrawer(container, 800, rotateButton, upButton, downButton, leftButton, rightButton);
-
-
 
 };

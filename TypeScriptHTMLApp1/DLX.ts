@@ -218,23 +218,27 @@
     }
 
     export class Search {
-        private solution: DataObject[];
+        private currentSolution: DataObject[];
+        private solutions : string[][];
         private tableHeader: TableHeader;
+        private numberOfSolutions =1;
 
         constructor(instance: ProblemInstance) {
             var dataStructure = new DataStructureConstructor(instance);
             this.tableHeader = dataStructure.tableHeader;
-            this.solution = new Array<DataObject>(instance.columnsRow.rowElements.length);
+            this.currentSolution = new Array<DataObject>(instance.columnsRow.rowElements.length);
         }
 
         private printSolution() {
-            this.solution.forEach((dataObject, index) => {
-                var line = "";
-                line += dataObject.columnHeader.name + " ";
+            console.log("Solution " + this.numberOfSolutions.toString() + "-------------------------");
+            this.numberOfSolutions++;
+            this.currentSolution.forEach((dataObject, index) => {
+                var solution = new Array<string>();
+                solution.push(dataObject.columnHeader.name);
                 for (var rowObject = <DataObject>dataObject.right; rowObject != dataObject; rowObject = <DataObject>rowObject.right) {
-                    line += rowObject.columnHeader.name + " ";
+                    solution.push(rowObject.columnHeader.name);
                 }
-                console.log(line);
+                this.solutions.push();
             });
         }
 
@@ -247,12 +251,12 @@
             var columnHeader = this.selectColumn();
             columnHeader.coverColumn();
             for (var row = columnHeader.down; row != columnHeader; row = row.down) {
-                this.solution[k] = <DataObject>row;
+                this.currentSolution[k] = <DataObject>row;
                 for (var j = <DataObject>row.right; j != row; j = <DataObject>j.right) {
                     j.columnHeader.coverColumn();
                 }
                 this.searchInternal(k + 1);
-                row = this.solution[k];
+                row = this.currentSolution[k];
                 for (j = <DataObject>row.left; j != row; j = <DataObject>j.left) {
                     j.columnHeader.uncoverColumn();
                 }

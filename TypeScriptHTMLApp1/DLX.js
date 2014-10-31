@@ -223,18 +223,22 @@ var Dlx;
 
     var Search = (function () {
         function Search(instance) {
+            this.numberOfSolutions = 1;
             var dataStructure = new DataStructureConstructor(instance);
             this.tableHeader = dataStructure.tableHeader;
-            this.solution = new Array(instance.columnsRow.rowElements.length);
+            this.currentSolution = new Array(instance.columnsRow.rowElements.length);
         }
         Search.prototype.printSolution = function () {
-            this.solution.forEach(function (dataObject, index) {
-                var line = "";
-                line += dataObject.columnHeader.name + " ";
+            var _this = this;
+            console.log("Solution " + this.numberOfSolutions.toString() + "-------------------------");
+            this.numberOfSolutions++;
+            this.currentSolution.forEach(function (dataObject, index) {
+                var solution = new Array();
+                solution.push(dataObject.columnHeader.name);
                 for (var rowObject = dataObject.right; rowObject != dataObject; rowObject = rowObject.right) {
-                    line += rowObject.columnHeader.name + " ";
+                    solution.push(rowObject.columnHeader.name);
                 }
-                console.log(line);
+                _this.solutions.push();
             });
         };
 
@@ -246,12 +250,12 @@ var Dlx;
             var columnHeader = this.selectColumn();
             columnHeader.coverColumn();
             for (var row = columnHeader.down; row != columnHeader; row = row.down) {
-                this.solution[k] = row;
+                this.currentSolution[k] = row;
                 for (var j = row.right; j != row; j = j.right) {
                     j.columnHeader.coverColumn();
                 }
                 this.searchInternal(k + 1);
-                row = this.solution[k];
+                row = this.currentSolution[k];
                 for (j = row.left; j != row; j = j.left) {
                     j.columnHeader.uncoverColumn();
                 }
@@ -296,4 +300,4 @@ function testSearch() {
     var search = new Dlx.Search(problemInstance);
     search.search();
 }
-//# sourceMappingURL=Dlx.js.map
+//# sourceMappingURL=DLX.js.map
